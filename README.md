@@ -33,6 +33,20 @@ The Drone Survey Management System consists of four key functional components:
 - **Database**: PostgreSQL
 - **Real-time Communication**: Socket.io
 
+## Screenshots
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### Fleet Management
+![Fleet Management](screenshots/fleet.png)
+
+### Missions
+![Missions](screenshots/missions.png)
+
+### Reports & Analytics
+![Reports](screenshots/reports.png)
+
 ## Setup Instructions
 
 ### Prerequisites
