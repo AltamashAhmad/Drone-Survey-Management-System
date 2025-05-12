@@ -14,22 +14,13 @@ The Drone Survey Management System follows a client-server architecture with:
 
 ### Architecture Diagram
 
-```
-┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
-│                 │      │                 │      │                 │
-│  React Frontend │◄────►│ Express Backend │◄────►│   PostgreSQL    │
-│                 │      │                 │      │    Database     │
-└─────────────────┘      └─────────────────┘      └─────────────────┘
-         ▲                        ▲
-         │                        │
-         ▼                        ▼
-┌─────────────────┐      ┌─────────────────┐
-│                 │      │                 │
-│    Socket.io    │◄────►│    Socket.io    │
-│     Client      │      │     Server      │
-│                 │      │                 │
-└─────────────────┘      └─────────────────┘
-```
+![Drone Survey Management System Architecture](../screenshots/Architecture%20Diagram.png)
+
+The system architecture consists of:
+- **React Frontend**: Provides the user interface for interacting with the system
+- **Express Backend**: Handles API requests, business logic, and data processing
+- **PostgreSQL Database**: Stores all persistent data (drones, missions, locations, etc.)
+- **Socket.io Client/Server**: Enables real-time bidirectional communication between frontend and backend
 
 ## Database Schema
 
