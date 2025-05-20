@@ -119,9 +119,8 @@ const validateWaypoint = (data) => {
     }
   }
 
-  if (!data.sequence_number && data.sequence_number !== 0) {
-    errors.sequence_number = 'Sequence number is required';
-  } else {
+  // Only validate sequence_number if it's provided
+  if (data.sequence_number !== undefined && data.sequence_number !== null) {
     const seq = parseInt(data.sequence_number);
     if (isNaN(seq) || seq < 0) {
       errors.sequence_number = 'Invalid sequence number';
@@ -131,8 +130,80 @@ const validateWaypoint = (data) => {
   return Object.keys(errors).length > 0 ? errors : null;
 };
 
+// Location validation
+const validateLocation = (data, isUpdate = false) => {
+  const errors = {};
+
+  if (!isUpdate) {
+    if (!data.name || !data.name.trim()) {
+      errors.name = 'Name is required';
+    }
+  }
+
+  if (data.latitude !== undefined && data.latitude !== null && data.latitude !== '') {
+    const lat = parseFloat(data.latitude);
+    if (isNaN(lat) || lat < -90 || lat > 90) {
+      errors.latitude = 'Latitude must be between -90 and 90';
+    }
+  }
+
+  if (data.longitude !== undefined && data.longitude !== null && data.longitude !== '') {
+    const lng = parseFloat(data.longitude);
+    if (isNaN(lng) || lng < -180 || lng > 180) {
+      errors.longitude = 'Longitude must be between -180 and 180';
+    }
+  }
+
+  if (data.type && !['survey_site', 'construction', 'environmental', 'industrial'].includes(data.type)) {
+    errors.type = 'Invalid location type';
+  }
+
+  return Object.keys(errors).length > 0 ? errors : null;
+};
+
+// Report validation
+const validateReport = (data) => {
+  const errors = {};
+
+  if (!data.mission_id) {
+    errors.mission_id = 'Mission ID is required';
+  }
+
+  if (data.flight_duration !== undefined) {
+    const duration = parseInt(data.flight_duration);
+    if (isNaN(duration) || duration < 0) {
+      errors.flight_duration = 'Invalid flight duration';
+    }
+  }
+
+  if (data.distance_flown !== undefined) {
+    const distance = parseFloat(data.distance_flown);
+    if (isNaN(distance) || distance < 0) {
+      errors.distance_flown = 'Invalid distance value';
+    }
+  }
+
+  if (data.area_covered !== undefined) {
+    const area = parseFloat(data.area_covered);
+    if (isNaN(area) || area < 0) {
+      errors.area_covered = 'Invalid area value';
+    }
+  }
+
+  if (data.battery_consumed !== undefined) {
+    const battery = parseInt(data.battery_consumed);
+    if (isNaN(battery) || battery < 0 || battery > 100) {
+      errors.battery_consumed = 'Battery consumption must be between 0 and 100';
+    }
+  }
+
+  return Object.keys(errors).length > 0 ? errors : null;
+};
+
 module.exports = {
   validateDrone,
   validateMission,
-  validateWaypoint
+  validateWaypoint,
+  validateLocation,
+  validateReport
 }; 

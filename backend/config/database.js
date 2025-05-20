@@ -1,4 +1,7 @@
 const { Pool } = require('pg');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const pool = new Pool({
   user: process.env.DB_USER || 'postgres',
@@ -20,4 +23,5 @@ pool.query('SELECT NOW()', (err, res) => {
 module.exports = {
   query: (text, params) => pool.query(text, params),
   pool,
+  getClient: () => pool.connect()
 }; 

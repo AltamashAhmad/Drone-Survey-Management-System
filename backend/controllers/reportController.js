@@ -1,4 +1,6 @@
 const db = require('../config/database');
+const { validateReport } = require('../utils/validation');
+const { handleControllerError, handleNotFound } = require('../utils/errorHandler');
 
 const reportController = {
   // Get all survey reports
@@ -13,7 +15,7 @@ const reportController = {
       );
       res.json(result.rows);
     } catch (err) {
-      next(err);
+      handleControllerError(err, res, next);
     }
   },
 
@@ -30,16 +32,12 @@ const reportController = {
         [id]
       );
 
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          status: 'error',
-          message: 'Report not found'
-        });
-      }
+      const notFound = handleNotFound(result, res, 'Report');
+      if (notFound) return;
 
       res.json(result.rows[0]);
     } catch (err) {
-      next(err);
+      handleControllerError(err, res, next);
     }
   },
 
@@ -58,7 +56,7 @@ const reportController = {
       );
       res.json(result.rows);
     } catch (err) {
-      next(err);
+      handleControllerError(err, res, next);
     }
   },
 
@@ -77,7 +75,7 @@ const reportController = {
       );
       res.json(result.rows);
     } catch (err) {
-      next(err);
+      handleControllerError(err, res, next);
     }
   },
 
@@ -86,53 +84,36 @@ const reportController = {
     try {
       const {
         mission_id,
+        location_id,
         flight_duration,
         distance_flown,
         area_covered,
-        waypoints_completed,
-        data_collected,
-        sensor_type,
-        battery_consumed,
         image_count,
-        location_id,
-        report_data
+        battery_consumed,
+        weather_conditions,
+        notes
       } = req.body;
 
-      // Validate required fields
-      if (!mission_id) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Mission ID is required'
-        });
+      // Validate report data
+      const validationError = validateReport(req.body);
+      if (validationError) {
+        return res.status(400).json({ error: validationError });
       }
 
       const result = await db.query(
         `INSERT INTO survey_reports (
-          mission_id, flight_duration, distance_flown, area_covered,
-          waypoints_completed, data_collected, sensor_type,
-          battery_consumed, image_count, location_id, report_data
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        RETURNING *`,
+          mission_id, location_id, flight_duration, distance_flown,
+          area_covered, image_count, battery_consumed, weather_conditions, notes
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
         [
-          mission_id,
-          flight_duration || 0,
-          distance_flown || 0,
-          area_covered || 0,
-          waypoints_completed || 0,
-          data_collected || 0,
-          sensor_type || 'rgb',
-          battery_consumed || 0,
-          image_count || 0,
-          location_id,
-          report_data ? JSON.stringify(report_data) : '{}'
+          mission_id, location_id, flight_duration, distance_flown,
+          area_covered, image_count, battery_consumed, weather_conditions, notes
         ]
       );
 
       res.status(201).json(result.rows[0]);
     } catch (err) {
-      console.error('Error creating report:', err);
-      next(err);
+      handleControllerError(err, res, next);
     }
   },
 
@@ -154,7 +135,7 @@ const reportController = {
 
       res.json(stats.rows[0]);
     } catch (err) {
-      next(err);
+      handleControllerError(err, res, next);
     }
   }
 };
