@@ -13,6 +13,10 @@ import {
   TableRow,
   IconButton,
   Chip,
+  MenuItem,
+  Select,
+  FormControl,
+  Tooltip,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -20,9 +24,18 @@ import {
   Delete as DeleteIcon,
   PlayArrow as StartIcon,
   Stop as StopIcon,
+  Block as BlockIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getMissions, updateMission, deleteMission } from '../../services/missionService';
+
+const statusOptions = [
+  { value: 'planned', label: 'Planned' },
+  { value: 'in-progress', label: 'In Progress' },
+  { value: 'paused', label: 'Paused' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'aborted', label: 'Aborted' },
+];
 
 const Missions = () => {
   const navigate = useNavigate();
@@ -51,10 +64,6 @@ const Missions = () => {
     navigate('/missions/new');
   };
 
-  const handleEditMission = (id) => {
-    navigate(`/missions/${id}/edit`);
-  };
-
   const handleDeleteMission = async (id) => {
     if (window.confirm('Are you sure you want to delete this mission?')) {
       try {
@@ -68,7 +77,7 @@ const Missions = () => {
 
   const handleStartMission = async (id) => {
     try {
-      await updateMission(id, { status: 'in_progress' });
+      await updateMission(id, { status: 'in-progress' });
       fetchMissions();
     } catch (err) {
       console.error('Error starting mission:', err);
@@ -84,15 +93,44 @@ const Missions = () => {
     }
   };
 
+  const handlePauseMission = async (id) => {
+    try {
+      await updateMission(id, { status: 'paused' });
+      fetchMissions();
+    } catch (err) {
+      console.error('Error pausing mission:', err);
+    }
+  };
+
+  const handleAbortMission = async (id) => {
+    try {
+      await updateMission(id, { status: 'aborted' });
+      fetchMissions();
+    } catch (err) {
+      console.error('Error aborting mission:', err);
+    }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      await updateMission(id, { status: newStatus });
+      fetchMissions();
+    } catch (err) {
+      console.error('Error updating mission status:', err);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'planned':
         return 'default';
-      case 'in_progress':
+      case 'in-progress':
         return 'primary';
+      case 'paused':
+        return 'warning';
       case 'completed':
         return 'success';
-      case 'failed':
+      case 'aborted':
         return 'error';
       default:
         return 'default';
@@ -151,9 +189,10 @@ const Missions = () => {
                     <TableCell>{mission.name}</TableCell>
                     <TableCell>
                       <Chip
-                        label={mission.status}
+                        label={statusOptions.find(option => option.value === mission.status)?.label || mission.status}
                         color={getStatusColor(mission.status)}
                         size="small"
+                        sx={{ textTransform: 'capitalize' }}
                       />
                     </TableCell>
                     <TableCell>
@@ -162,41 +201,100 @@ const Missions = () => {
                     <TableCell>{mission.survey_pattern}</TableCell>
                     <TableCell>{mission.flight_altitude}m</TableCell>
                     <TableCell align="right">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleEditMission(mission.id)}
-                        title="Edit"
-                      >
-                        <EditIcon />
-                      </IconButton>
                       {mission.status === 'planned' && (
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          onClick={() => handleStartMission(mission.id)}
-                          title="Start"
-                        >
-                          <StartIcon />
-                        </IconButton>
+                        <Tooltip title="Start">
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handleStartMission(mission.id)}
+                            title="Start"
+                          >
+                            <StartIcon />
+                          </IconButton>
+                        </Tooltip>
                       )}
-                      {mission.status === 'in_progress' && (
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleStopMission(mission.id)}
-                          title="Stop"
-                        >
-                          <StopIcon />
-                        </IconButton>
+                      {mission.status === 'planned' && (
+                        <Tooltip title="Delete">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteMission(mission.id)}
+                            title="Delete"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
                       )}
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDeleteMission(mission.id)}
-                        title="Delete"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+                      {mission.status === 'in-progress' && (
+                        <>
+                          <Tooltip title="Pause">
+                            <IconButton
+                              size="small"
+                              color="warning"
+                              onClick={() => handlePauseMission(mission.id)}
+                              title="Pause"
+                            >
+                              <StopIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Stop">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleStopMission(mission.id)}
+                              title="Stop"
+                            >
+                              <StopIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Abort">
+                            <IconButton
+                              size="small"
+                              color="warning"
+                              onClick={() => handleAbortMission(mission.id)}
+                              title="Abort"
+                            >
+                              <BlockIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      )}
+                      {mission.status === 'paused' && (
+                        <>
+                          <Tooltip title="Resume">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => handleStartMission(mission.id)}
+                              title="Resume"
+                            >
+                              <StartIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Abort">
+                            <IconButton
+                              size="small"
+                              color="warning"
+                              onClick={() => handleAbortMission(mission.id)}
+                              title="Abort"
+                            >
+                              <BlockIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      )}
+                      {(mission.status === 'completed' || mission.status === 'aborted') && (
+                        <Tooltip title="Delete">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteMission(mission.id)}
+                            title="Delete"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

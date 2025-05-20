@@ -30,7 +30,6 @@ const MissionSubmitDialog = ({ open, onClose, missionData, isEditing, onSuccess,
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [loadingDrones, setLoadingDrones] = useState(false);
-  const [saveMissionOnly, setSaveMissionOnly] = useState(false);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
   // Separate function to handle form input changes
@@ -93,7 +92,6 @@ const MissionSubmitDialog = ({ open, onClose, missionData, isEditing, onSuccess,
         description: missionData.description || '',
         droneId: missionData.droneId || preselectedDroneId || ''
       });
-      setSaveMissionOnly(false);
       fetchAvailableDrones();
       setInitialDataLoaded(true);
     } else if (!open) {
@@ -122,9 +120,9 @@ const MissionSubmitDialog = ({ open, onClose, missionData, isEditing, onSuccess,
       return;
     }
 
-    // If we're not just saving the mission, validate drone selection
-    if (!saveMissionOnly && !formState.droneId) {
-      setError('Please select a drone for this mission or choose "Save Mission Only"');
+    // Require drone selection for all missions
+    if (!formState.droneId) {
+      setError('Please select a drone for this mission.');
       return;
     }
 
@@ -134,8 +132,6 @@ const MissionSubmitDialog = ({ open, onClose, missionData, isEditing, onSuccess,
     try {
       // Format waypoints if needed
       let formattedWaypoints = missionData.waypoints;
-      
-      // If waypoints are still in the old array format, convert them
       if (missionData.waypoints.length > 0 && Array.isArray(missionData.waypoints[0])) {
         formattedWaypoints = missionData.waypoints.map(wp => ({
           latitude: wp[1],
@@ -143,41 +139,36 @@ const MissionSubmitDialog = ({ open, onClose, missionData, isEditing, onSuccess,
           altitude: missionData.parameters.altitude
         }));
       } else if (missionData.waypoints.length > 0) {
-        // Make sure all waypoints have altitude set
         formattedWaypoints = missionData.waypoints.map(wp => ({
           ...wp,
           altitude: wp.altitude || missionData.parameters.altitude
         }));
       }
-      
       if (isEditing) {
         await updateMission(missionData.id, {
           name: formState.name,
           description: formState.description,
-          drone_id: saveMissionOnly ? null : formState.droneId,
-          flight_altitude: missionData.parameters.altitude,
-          flight_speed: missionData.parameters.speed,
-          sensor_type: missionData.parameters.sensorType,
-          survey_pattern: missionData.flightPattern,
-          overlap_percentage: missionData.parameters.overlap,
-          data_collection_frequency: missionData.parameters.collectionFrequency,
-          survey_area: missionData.surveyArea,
-          waypoints: formattedWaypoints,
-          status: saveMissionOnly ? 'planned' : 'ready' // Mark as ready if a drone is assigned
+          drone_id: formState.droneId
         });
       } else {
-        // Add drone_id to the mission data
         await createMission({
           ...fullMissionData,
-          drone_id: saveMissionOnly ? null : formState.droneId,
-          status: saveMissionOnly ? 'planned' : 'ready', // Mark as ready if a drone is assigned
+          drone_id: formState.droneId,
+          status: 'ready',
           waypoints: formattedWaypoints
         });
       }
       onSuccess();
     } catch (err) {
-      console.error("Error during mission submit:", err);
-      setError(err.message);
+      let errorMsg = err.message;
+      if (err.response && err.response.data && err.response.data.error) {
+        if (typeof err.response.data.error === 'object') {
+          errorMsg = JSON.stringify(err.response.data.error);
+        } else {
+          errorMsg = err.response.data.error;
+        }
+      }
+      setError(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -260,7 +251,7 @@ const MissionSubmitDialog = ({ open, onClose, missionData, isEditing, onSuccess,
             value={formState.droneId}
             onChange={(e) => handleInputChange('droneId', e.target.value)}
             label="Assign Drone"
-            disabled={loadingDrones || isSubmitting || saveMissionOnly}
+            disabled={loadingDrones || isSubmitting}
           >
             {availableDrones.map((drone) => (
               <MenuItem key={drone.id} value={drone.id}>
@@ -274,28 +265,6 @@ const MissionSubmitDialog = ({ open, onClose, missionData, isEditing, onSuccess,
             )}
           </Select>
         </FormControl>
-
-        {allDrones.length > 0 && availableDrones.length === 0 && (
-          <Alert severity="info" sx={{ mb: 3 }}>
-            All drones are currently busy. You can save this mission and assign a drone later when one becomes available.
-          </Alert>
-        )}
-
-        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
-          <Button 
-            variant={saveMissionOnly ? "contained" : "outlined"}
-            color={saveMissionOnly ? "primary" : "secondary"}
-            onClick={() => setSaveMissionOnly(!saveMissionOnly)}
-            disabled={isSubmitting}
-          >
-            {saveMissionOnly ? "Mission Only (No Drone)" : "Save Mission Only"}
-          </Button>
-          {saveMissionOnly && (
-            <Typography variant="caption" sx={{ ml: 2, color: 'text.secondary' }}>
-              Mission will be saved without assigning a drone. You can assign one later.
-            </Typography>
-          )}
-        </Box>
 
         <Divider sx={{ mb: 3 }} />
         

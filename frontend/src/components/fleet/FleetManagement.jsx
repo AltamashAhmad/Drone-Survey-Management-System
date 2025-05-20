@@ -26,8 +26,7 @@ import {
   Battery20 as Battery20Icon,
   Battery50 as Battery50Icon,
   BatteryFull as BatteryFullIcon,
-  BatteryAlert as BatteryAlertIcon,
-  FlightTakeoff as FlightTakeoffIcon
+  BatteryAlert as BatteryAlertIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getDrones, deleteDrone } from '../../services/droneService';
@@ -85,10 +84,6 @@ const FleetManagement = () => {
         alert(err.message);
       }
     }
-  };
-
-  const handleAssignToMission = (droneId) => {
-    navigate(`/missions/new?drone=${droneId}`);
   };
 
   const getStatusColor = (status) => {
@@ -275,17 +270,6 @@ const FleetManagement = () => {
                           <EditIcon />
                         </IconButton>
                       </Tooltip>
-                      {drone.status === 'idle' && (
-                        <Tooltip title="Assign to Mission">
-                          <IconButton 
-                            onClick={() => handleAssignToMission(drone.id)} 
-                            size="small" 
-                            color="primary"
-                          >
-                            <FlightTakeoffIcon />
-                          </IconButton>
-                        </Tooltip>
-                      )}
                       <Tooltip title="Delete">
                         <IconButton 
                           onClick={() => handleDeleteDrone(drone.id, drone.status)} 

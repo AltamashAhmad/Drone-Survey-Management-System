@@ -93,6 +93,7 @@ const MissionPlanner = () => {
               collectionFrequency: mission.data_collection_frequency || 5
             }
           });
+          setSubmitDialogOpen(true); // Open dialog immediately for edit
         } catch (error) {
           console.error('Failed to fetch mission:', error);
           // Handle error - maybe show a notification to user
@@ -190,35 +191,35 @@ const MissionPlanner = () => {
       <Typography variant="h4" gutterBottom>
         {isEditing ? 'Edit Mission' : 'New Mission'}
       </Typography>
-      
-      <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-        {steps.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
-
-      <Paper sx={{ p: 2, minHeight: '600px' }}>
-        {renderStepContent(activeStep)}
-      </Paper>
-
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-        <Button
-          disabled={activeStep === 0}
-          onClick={handleBack}
-        >
-          Back
-        </Button>
-        <Button
-          variant="contained"
-          onClick={activeStep === steps.length - 1 ? handleCreateMission : handleNext}
-          disabled={activeStep === 0 && !missionData.surveyArea}
-        >
-          {activeStep === steps.length - 1 ? (isEditing ? 'Update Mission' : 'Create Mission') : 'Next'}
-        </Button>
-      </Box>
-
+      {!isEditing && (
+        <>
+          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+          <Paper sx={{ p: 2, minHeight: '600px' }}>
+            {renderStepContent(activeStep)}
+          </Paper>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+            <Button
+              disabled={activeStep === 0}
+              onClick={handleBack}
+            >
+              Back
+            </Button>
+            <Button
+              variant="contained"
+              onClick={activeStep === steps.length - 1 ? handleCreateMission : handleNext}
+              disabled={activeStep === 0 && !missionData.surveyArea}
+            >
+              {activeStep === steps.length - 1 ? 'Create Mission' : 'Next'}
+            </Button>
+          </Box>
+        </>
+      )}
       <MissionSubmitDialog
         open={submitDialogOpen}
         onClose={() => setSubmitDialogOpen(false)}
