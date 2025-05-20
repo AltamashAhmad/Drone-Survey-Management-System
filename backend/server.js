@@ -11,7 +11,6 @@ dotenv.config();
 // Import routes
 const missionsRouter = require('./routes/missions');
 const droneController = require('./controllers/droneController');
-const locationsRouter = require('./routes/locations');
 const reportsRouter = require('./routes/reports');
 
 // Create Express app
@@ -43,7 +42,6 @@ app.get('/api/health', async (req, res) => {
 
 // API Routes
 app.use('/api/missions', missionsRouter);
-app.use('/api/locations', locationsRouter);
 app.use('/api/reports', reportsRouter);
 app.get('/api/drones', droneController.getAllDrones);
 app.get('/api/drones/:id', droneController.getDrone);

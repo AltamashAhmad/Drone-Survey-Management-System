@@ -12,7 +12,6 @@ import Missions from './components/missions/Missions';
 import MissionPlanner from './components/missions/MissionPlanner';
 import MissionMonitor from './components/missions/MissionMonitor';
 import Reports from './components/reports';
-import LocationManager from './components/locations/LocationManager';
 
 // Create a theme instance
 const theme = createTheme({
@@ -53,7 +52,6 @@ function App() {
               <Route path="/missions/new" element={<MissionPlanner />} />
               <Route path="/missions/:id/edit" element={<MissionPlanner />} />
               <Route path="/missions/:id" element={<MissionMonitor />} />
-              <Route path="/locations" element={<LocationManager />} />
           <Route path="/reports" element={<Reports />} />
         </Routes>
           </Box>

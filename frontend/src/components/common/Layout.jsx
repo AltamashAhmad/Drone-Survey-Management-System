@@ -13,7 +13,6 @@ const Layout = ({ children }) => {
     { text: 'Mission Planner', icon: <Map />, path: '/mission-planner' },
     { text: 'Fleet Management', icon: <ViewList />, path: '/fleet' },
     { text: 'Mission Monitoring', icon: <FlightTakeoff />, path: '/monitoring' },
-    { text: 'Locations', icon: <LocationOn />, path: '/locations' },
     { text: 'Reports', icon: <Assessment />, path: '/reports' }
   ];
 
